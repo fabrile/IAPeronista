@@ -27,6 +27,8 @@ function setup() {
     textAlign(CENTER, CENTER);
     fill(255);
     text("Cargando IA peronista...", width/2, height/2);
+    text("con un gesto re reconoce", width/2, height/2+100);
+
   } 
 
   // Create the webcam video and hide it
