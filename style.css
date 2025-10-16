@@ -1,0 +1,34 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #000;
+  overflow: hidden;
+}
+
+canvas {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: block;
+  width: auto;
+  height: auto;
+  max-height: 100vh;
+  max-width: min(100vh, 100vw);
+  aspect-ratio: 4/3;
+  object-fit: contain;
+  border: 1px solid red; /* Uncomment to debug */ */
+
+  /* Remove margin: 0 auto as we're using transform centering */
+}
