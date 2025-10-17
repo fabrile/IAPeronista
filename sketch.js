@@ -10,9 +10,11 @@ let loadingProgress = 0;
 let loadingSteps = 3; // Number of loading steps
 let currentStep = 0;
 let loadingMessages = [
-    "Inicializando cámara...",
-    "Cargando modelo de detección de gestos...",
-    "Preparando IA Peronista..."
+    {text: "🔍 Inicializando cámara...", progress: 15},
+    {text: "🤖 Cargando modelo de IA...", progress: 40},
+    {text: "✋ Preparando detección de gestos...", progress: 65},
+    {text: "🎯 Optimizando precisión...", progress: 85},
+    {text: "🚀 ¡Casi listo!...", progress: 95}
 ];
 
 let loadingScreen;
@@ -260,18 +262,42 @@ function shareOnSocial(platform) {
   }
 }
 
-// Update loading UI
+// Update loading UI with smooth transitions
 function updateLoading(message) {
   if (loadingText) {
-    loadingText.html(message);
+    // Add fade out effect
+    loadingText.style('opacity', '0');
+    
+    // After fade out, update text and fade in
+    setTimeout(() => {
+      loadingText.html(message.text || message);
+      loadingText.style('opacity', '1');
+      
+      // Update progress if message includes progress info
+      if (message.progress) {
+        updateProgress(message.progress);
+      }
+    }, 200);
   }
 }
 
-// Update loading progress bar
+// Update loading progress bar with smooth animation
 function updateProgress(percent) {
-  loadingProgress = percent;
   if (loadingProgressBar) {
-    loadingProgressBar.style('width', loadingProgress + '%');
+    // Smooth transition for progress bar
+    loadingProgressBar.style('transition', 'width 0.7s ease-out');
+    loadingProgressBar.style('width', percent + '%');
+    
+    // Change color based on progress
+    if (percent < 30) {
+      loadingProgressBar.style('background', 'linear-gradient(90deg, #1e3c72, #2a5298)');
+    } else if (percent < 70) {
+      loadingProgressBar.style('background', 'linear-gradient(90deg, #2a5298, #7db9e8)');
+    } else {
+      loadingProgressBar.style('background', 'linear-gradient(90deg, #4CAF50, #8BC34A)');
+    }
+    
+    loadingProgress = percent;
   }
 }
 

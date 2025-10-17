@@ -8,25 +8,39 @@ html, body#app {
   position: relative;
   width: 100%;
   height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Container for the canvas */
+#defaultCanvas0-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
   overflow: hidden;
-  padding: 20px;
-  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
 }
 
 canvas {
   display: block;
-  max-width: 100%;
-  height: auto;
-  width: auto !important;
-  max-height: 100%;
+  width: 100% !important;
+  height: 100% !important;
   object-fit: contain;
-  margin: 0 auto;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
+
 
 :root {
   --text-dark: #212121;
@@ -43,6 +57,8 @@ canvas {
 body {
   margin: 0;
   padding: 0;
+  width: 100vw;
+  height: 100vh;
   overflow: hidden;
   background-color: var(--background-dark);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -84,45 +100,112 @@ body {
 
 h1 {
   font-size: 2.5rem;
-  margin-bottom: 1rem;
-  background: linear-gradient(45deg, var(--secondary-color), #ffab00);
+  margin: 1.5rem 0;
+  background: linear-gradient(45deg, #1e3c72, #2a5298, #7db9e8);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   text-align: center;
+  animation: titleFadeIn 1s ease-out;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+@keyframes titleFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .loading-text {
   font-size: 1.2rem;
-  margin-bottom: 2rem;
+  margin: 1rem auto 2rem;
   text-align: center;
   max-width: 80%;
   line-height: 1.6;
+  min-height: 2.4rem;
+  color: #088cb4;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeInUp 0.5s forwards;
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.loading-hint {
+  font-size: 0.9rem;
+  color:  #088cb4;
+  margin-top: 1rem;
+  text-align: center;
+  opacity: 0.8;
 }
 
 .loading-bar {
-  width: 300px;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 2px;
+  width: 80%;
+  max-width: 400px;
+  background-color: #f0f0f0;
+  border-radius: 10px;
+  margin: 20px auto;
   overflow: hidden;
-  margin-bottom: 2rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 .loading-progress {
   height: 100%;
   width: 0%;
-  background: linear-gradient(90deg, var(--secondary-color), var(--accent-color));
-  transition: width 0.3s ease;
-  border-radius: 2px;
+  background: linear-gradient(90deg, #1e3c72, #2a5298, #7db9e8);
+  transition: width 0.5s ease-out;
+  border-radius: 10px;
+  position: relative;
+  overflow: hidden;
 }
 
-.peronista-text {
+.loading-progress::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    -45deg,
+    rgba(255, 255, 255, 0.2) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.2) 75%,
+    transparent 75%
+  );
+  background-size: 40px 40px;
+  animation: move 2s linear infinite;
+  border-radius: 10px;
+}
+
+@keyframes move {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 40px 40px;
+  }
+}
+
+a-text {
   position: absolute;
   top: 20px;
   left: 20px;
   font-size: 2rem;
   font-weight: bold;
-  color: var(--secondary-color);
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
   z-index: 10;
 }
@@ -136,8 +219,9 @@ h1 {
   background: var(--overlay);
   padding: 15px;
   font-size: 1rem;
+  color: white;
   backdrop-filter: blur(5px);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid #0fbcc9;
   z-index: 10;
 }
 
