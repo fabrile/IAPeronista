@@ -1,44 +1,83 @@
-/*
- * 👋 Hello! This is an ml5.js example made and shared with ❤️.
- * Learn more about the ml5.js project: https://ml5js.org/
- * ml5.js license and Code of Conduct: https://github.com/ml5js/ml5-next-gen/blob/main/LICENSE.md
- *
- * This example demonstrates loading a pre-trained model with ml5.neuralNetwork.
- */
+// IA Peronista - Reconocimiento de Gestos
+// Aplicación que utiliza IA para reconocer gestos peronistas
 
 let classifier;
 let handPose;
 let video;
 let hands = [];
 let classification = "";
-let isModelLoaded = false;
+let loadingProgress = 0;
+let loadingSteps = 3; // Number of loading steps
+let currentStep = 0;
+let loadingMessages = [
+    "Inicializando cámara...",
+    "Cargando modelo de detección de manos...",
+    "Preparando IA Peronista..."
+];
+
+let loadingScreen;
+let loadingText;
+let loadingProgressBar;
+let appContainer;
+let sharePanel;
+let isHandPoseReady = false;
+let lastDetectionTime = 0;
+const DETECTION_DELAY = 3000; // 3 seconds
 
 function preload() {
-  // Load the handPose model
-  handPose = ml5.handPose();
+  // Initialize UI elements
+  loadingScreen = select('#loadingScreen');
+  loadingText = select('.loading-text');
+  loadingProgressBar = select('#loadingProgress');
+  appContainer = select('#app');
+  
+  // Show initial loading message
+  updateLoading('Iniciando IA Peronista...');
+  
+  // Initialize handPose model with explicit backend configuration
+  handPose = ml5.handPose({
+    flipHorizontal: true,
+    runtime: 'tfjs',
+    modelType: 'lite',
+    maxHands: 2
+  }, () => {
+    console.log('HandPose model loaded!');
+    isHandPoseReady = true;
+    updateLoading(loadingMessages[currentStep++]);
+    updateProgress(33);
+  });
 }
 
 function setup() {
-  createCanvas(640, 480);
-
-  if (!isModelLoaded) {
-    background(0);
-    textSize(32);
-    textAlign(CENTER, CENTER);
-    fill(255);
-    text("Cargando IA peronista...", width/2, height/2);
-    text("con un gesto re reconoce", width/2, height/2+100);
-
-  } 
+  // Create canvas with responsive size
+  let canvas = createCanvas(windowWidth, windowHeight);
+  canvas.parent('app');
+  
+  // Update loading progress
+  updateLoading(loadingMessages[currentStep++]);
+  updateProgress(66);
 
   // Create the webcam video and hide it
-  video = createCapture(VIDEO,{ flipped:true });
-  video.size(640, 480);
-  video.hide();
-
-  // For this example to work across all browsers
-  // "webgl" or "cpu" needs to be set as the backend
-  ml5.setBackend("webgl");
+  video = createCapture(VIDEO, { 
+    video: {
+      width: { ideal: windowWidth },
+      height: { ideal: windowHeight },
+      facingMode: "user"
+    },
+    audio: false
+  });
+  
+  video.elt.style.display = 'none'; // Hide the video element (we'll draw it manually)
+  
+  // Configure TensorFlow.js backend
+  // This will automatically fall back to CPU if WebGL is not available
+  if (typeof tf !== 'undefined') {
+    tf.setBackend('cpu').then(() => {
+      console.log('TensorFlow.js backend set to:', tf.getBackend());
+    }).catch(err => {
+      console.warn('Error setting TensorFlow.js backend:', err);
+    });
+  }
 
   // Set up the neural network
   let classifierOptions = {
@@ -52,47 +91,91 @@ function setup() {
     weights: "model/model.weights.bin",
   };
 
-  classifier.load(modelDetails, modelLoaded);
+  // Load the model
+  classifier.load(modelDetails, () => {
+    updateLoading(loadingMessages[currentStep++]);
+    updateProgress(100);
+    modelLoaded();
+  });
 
-  // Start the handPose detection
-  handPose.detectStart(video, gotHands);
+  // Start the handPose detection once the model is ready
+  if (isHandPoseReady) {
+    handPose.detectStart(video, gotHands);
+  } else {
+    // If handPose isn't ready yet, check again shortly
+    setTimeout(() => {
+      if (handPose && handPose.detectStart) {
+        handPose.detectStart(video, gotHands);
+      }
+    }, 500);
+  }
 }
 
 function draw() {
-  textAlign(LEFT, CENTER);
-  //Display the webcam video
+  // Save the current drawing state
+  push();
+  
+  // Mirror the entire drawing context horizontally
+  translate(width, 0);
+  scale(-1, 1);
+  
+  // Display the webcam video (already mirrored)
   image(video, 0, 0, width, height);
-
   
   // Draw the handPose keypoints
   if (hands[0]) {
     let hand = hands[0];
-    for (let i = 0; i < hand.keypoints.length; i++) {
-      let keypoint = hand.keypoints[i];
-      //fill(0, 255, 0);
-      noStroke();
-      circle(width-keypoint.x, keypoint.y, 10);
-    }
-      // If the model is loaded, make a classification and display the result
-    if (isModelLoaded)  {
+    
+    // Draw hand skeleton
+    drawHandSkeleton(hand);
+    
+    // If the model is loaded, make a classification
+    if (isModelLoaded) {
       let inputData = flattenHandData();
       classifier.classify(inputData, gotClassification);
-      textSize(64);
-      if(classification === "Peronista"){
-        fill(0, 255, 0);      
-        text(classification, 20, 60);
-
-      } else if(classification === "Nazy"){
-        fill(255, 0, 0, 0);
-      } else if(classification === " "){
-        noFill();
-      }
     }
-
   }
   
-
+  // Restore the original drawing state
+  pop();
   
+  // Draw UI elements that should not be mirrored
+  drawUI();
+}
+
+function drawHandSkeleton(hand) {
+  if (!hand || !hand.keypoints) return;
+  
+  // Draw keypoints
+  for (let i = 0; i < hand.keypoints.length; i++) {
+    let keypoint = hand.keypoints[i];
+    fill(255, 0, 0, 150);
+    noStroke();
+    circle(width - keypoint.x, keypoint.y, 8);
+  }
+  
+  // Draw connections between keypoints if available
+  if (handPose.HAND_CONNECTIONS) {
+    for (let i = 0; i < handPose.HAND_CONNECTIONS.length; i++) {
+      let startIndex = handPose.HAND_CONNECTIONS[i][0];
+      let endIndex = handPose.HAND_CONNECTIONS[i][1];
+      
+      if (hand.keypoints[startIndex] && hand.keypoints[endIndex]) {
+        let startX = width - hand.keypoints[startIndex].x;
+        let startY = hand.keypoints[startIndex].y;
+        let endX = width - hand.keypoints[endIndex].x;
+        let endY = hand.keypoints[endIndex].y;
+        
+        stroke(0, 255, 0, 150);
+        strokeWeight(2);
+        line(startX, startY, endX, endY);
+      }
+    }
+  }
+}
+
+function drawUI() {
+  // No need to draw text anymore as we're using HTML elements
 }
 
 // convert the handPose data to a 1D array
@@ -114,10 +197,89 @@ function gotHands(results) {
 
 // Callback function for when the classifier makes a classification
 function gotClassification(results) {
-  classification = results[0].label;
+  const newClassification = results[0].label;
+  
+  // Only update if classification changed
+  if (newClassification !== classification) {
+    classification = newClassification;
+    
+    // Show/hide share panel based on classification
+    if (classification === "Peronista") {
+      showSharePanel();
+    } else {
+      hideSharePanel();
+    }
+  }
+}
+
+// Show the share panel with animation
+function showSharePanel() {
+  if (!sharePanel) {
+    sharePanel = select('#share-panel');
+  }
+  sharePanel.addClass('show');
+  lastDetectionTime = millis();
+}
+
+// Hide the share panel with animation
+function hideSharePanel() {
+  if (sharePanel) {
+    sharePanel.removeClass('show');
+  }
+}
+
+// Share on social media
+function shareOnSocial(platform) {
+  const shareText = '¡Acabo de ser detectado como Peronista por la IA Peronista! 👋 #IAPeronista';
+  const shareUrl = encodeURIComponent(window.location.href);
+  const text = encodeURIComponent(shareText);
+  
+  let shareLink = '';
+  
+  switch(platform) {
+    case 'facebook':
+      shareLink = `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}&quote=${text}`;
+      break;
+    case 'twitter':
+      shareLink = `https://twitter.com/intent/tweet?text=${text}&url=${shareUrl}`;
+      break;
+    case 'whatsapp':
+      shareLink = `https://wa.me/?text=${text} ${shareUrl}`;
+      break;
+  }
+  
+  if (shareLink) {
+    window.open(shareLink, '_blank', 'width=600,height=400');
+  }
+}
+
+// Update loading UI
+function updateLoading(message) {
+  if (loadingText) {
+    loadingText.html(message);
+  }
+}
+
+// Update loading progress bar
+function updateProgress(percent) {
+  loadingProgress = percent;
+  if (loadingProgressBar) {
+    loadingProgressBar.style('width', loadingProgress + '%');
+  }
 }
 
 // Callback function for when the pre-trained model is loaded
 function modelLoaded() {
   isModelLoaded = true;
+  
+  // Hide loading screen with a delay for better UX
+  setTimeout(() => {
+    loadingScreen.addClass('fade-out');
+    appContainer.style('display', 'block');
+    
+    // Remove loading screen from DOM after animation
+    setTimeout(() => {
+      loadingScreen.remove();
+    }, 500);
+  }, 1000);
 }

@@ -1,27 +1,59 @@
-<!--
-  👋 Hello! This is an ml5.js example made and shared with ❤️.
-  Learn more about the ml5.js project: https://ml5js.org/
-  ml5.js license and Code of Conduct: https://github.com/ml5js/ml5-next-gen/blob/main/LICENSE.md
-
-  This example demonstrates loading a pre-trained model with ml5.neuralNetwork.
--->
-
 <!DOCTYPE html>
-<html lang="en">
-  <head>
+<html lang="es">
+<head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>IA Peronista</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="p5.min.js"></script>
     <script src="ml5.min.js"></script>
     <link rel="stylesheet" type="text/css" href="style.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  </head>
-  <body>
-    <div id="loading">Cargando IA peronista...</br>
-            sólo con un gesto te conoce </br>
-            para ello habilita la camara</div>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-container" id="loadingScreen">
+        <div class="logo">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="45" fill="none" stroke="#ffd600" stroke-width="8"/>
+                <path d="M30,35 L50,65 L70,35" fill="none" stroke="#ffd600" stroke-width="8" stroke-linecap="round"/>
+            </svg>
+        </div>
+        <h1>Bienvenido a la IA Peronista</h1>
+        <p class="loading-text">Inicializando el sistema de reconocimiento de gestos...</p>
+        <div class="loading-bar">
+            <div class="loading-progress" id="loadingProgress"></div>
+        </div>
+        <p class="loading-hint">Por favor, permite el acceso a tu cámara cuando te lo solicite</p>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="app" style="display: none;">
+        <div class="instructions">Realiza un gesto con tu mano para comenzar el análisis</div>
+        
+        <!-- Share Panel (initially hidden) -->
+        <div id="share-panel" class="share-panel">
+            <h2>¡Peronista detectado!</h2>
+            <p>¡Compartí en tus redes sociales!</p>
+            <div class="social-buttons">
+                <button onclick="shareOnSocial('facebook')" class="social-btn facebook">
+                    <i class="fab fa-facebook-f"></i> Facebook
+                </button>
+                <button onclick="shareOnSocial('twitter')" class="social-btn twitter">
+                    <i class="fab fa-twitter"></i> Twitter
+                </button>
+                <button onclick="shareOnSocial('whatsapp')" class="social-btn whatsapp">
+                    <i class="fab fa-whatsapp"></i> WhatsApp
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Font Awesome for social icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
     <script src="sketch.js"></script>
-  </body>
+</body>
 </html>
