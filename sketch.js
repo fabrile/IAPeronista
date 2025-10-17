@@ -11,7 +11,7 @@ let loadingSteps = 3; // Number of loading steps
 let currentStep = 0;
 let loadingMessages = [
     "Inicializando cámara...",
-    "Cargando modelo de detección de manos...",
+    "Cargando modelo de detección de gestos...",
     "Preparando IA Peronista..."
 ];
 
@@ -49,19 +49,26 @@ function preload() {
 }
 
 function setup() {
-  // Create canvas with responsive size
-  let canvas = createCanvas(windowWidth, windowHeight);
+  // Set canvas size with a maximum width of 640px
+  const maxWidth = 640;
+  const aspectRatio = 4/3; // Standard 4:3 aspect ratio
+  const canvasWidth = Math.min(windowWidth, maxWidth);
+  const canvasHeight = canvasWidth / aspectRatio;
+  
+  // Create canvas with fixed aspect ratio
+  let canvas = createCanvas(canvasWidth, canvasHeight);
   canvas.parent('app');
   
   // Update loading progress
   updateLoading(loadingMessages[currentStep++]);
   updateProgress(66);
 
-  // Create the webcam video and hide it
+  // Create the webcam video with matching aspect ratio
   video = createCapture(VIDEO, { 
     video: {
-      width: { ideal: windowWidth },
-      height: { ideal: windowHeight },
+      width: { ideal: maxWidth },
+      height: { ideal: maxWidth / aspectRatio },
+      aspectRatio: aspectRatio,
       facingMode: "user"
     },
     audio: false
